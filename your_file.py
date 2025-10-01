@@ -33,8 +33,8 @@ if uploaded_file is not None:
             if search_value:
                 filtered_df = filtered_df[filtered_df[col].astype(str).str.contains(search_value, case=False, na=False)]
 
-        # Reorder columns: First Name, Last Name, NIC, then others
-        ordered_cols = [c for c in ["First Name", "Last Name", "NIC"] if c in filtered_df.columns]
+        # Reorder columns: SNo, Mauza, First Name, Relation, Last Name, NIC, then others
+        ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in filtered_df.columns]
         remaining_cols = [c for c in filtered_df.columns if c not in ordered_cols]
         filtered_df = filtered_df[ordered_cols + remaining_cols]
 
