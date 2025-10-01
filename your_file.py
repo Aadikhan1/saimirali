@@ -1,10 +1,8 @@
 import pandas as pd
 import streamlit as st
 
-file_path = "moza saee mirali.xlsx"
-
-# Force openpyxl engine
-df = pd.read_excel(file_path, sheet_name="Sheet1", engine="openpyxl")
+file_path = "moza_saee_mirali.csv"  # save your Excel as CSV manually first
+df = pd.read_csv(file_path)
 
 st.title("Excel Data Filter Tool")
 
