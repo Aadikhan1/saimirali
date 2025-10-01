@@ -20,7 +20,7 @@ if uploaded_file is not None:
         st.write("### Preview of Data", df.head())
 
         # Only allow search on specific columns
-        search_cols = ["First Name", "Last Name", "NIC"]
+        search_cols = ["First Name", "Last Name", "CNIC No"]
         filters = {}
 
         for col in search_cols:
@@ -57,3 +57,4 @@ if uploaded_file is not None:
         st.error(f"Error reading file: {e}")
 else:
     st.info("Please upload an Excel (.xlsx, .xls) or CSV file to begin.")
+
