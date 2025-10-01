@@ -34,7 +34,7 @@ if uploaded_file is not None:
                 filtered_df = filtered_df[filtered_df[col].astype(str).str.contains(search_value, case=False, na=False)]
 
         # Reorder columns: SNo, Mauza, First Name, Relation, Last Name, NIC, then others
-        ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in filtered_df.columns]
+        ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "CNIC NO"] if c in filtered_df.columns]
         remaining_cols = [c for c in filtered_df.columns if c not in ordered_cols]
         filtered_df = filtered_df[ordered_cols + remaining_cols]
 
@@ -57,4 +57,5 @@ if uploaded_file is not None:
         st.error(f"Error reading file: {e}")
 else:
     st.info("Please upload an Excel (.xlsx, .xls) or CSV file to begin.")
+
 
