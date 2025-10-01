@@ -40,19 +40,19 @@ if uploaded_file is not None:
         st.write("### Filtered Data", filtered_df)
 
         # --- Khewat No selection (AFTER filter results) ---
-        if "Khewat No" in df.columns:
-            khewat_list = sorted(df["Khewat No"].dropna().unique().astype(str).tolist())
-            selected_khewat = st.selectbox("Select Khewat No to view all records", ["None"] + khewat_list)
+        if "khewat no" in df.columns:
+            khewat_list = sorted(df["khewat no"].dropna().unique().astype(str).tolist())
+            selected_khewat = st.selectbox("Select khewat no to view all records", ["None"] + khewat_list)
 
             if selected_khewat != "None":
-                khewat_df = df[df["Khewat No"].astype(str) == selected_khewat]
+                khewat_df = df[df["khewat no"].astype(str) == selected_khewat]
 
                 # Reorder for khewat result
                 ordered_cols_k = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in khewat_df.columns]
                 remaining_cols_k = [c for c in khewat_df.columns if c not in ordered_cols_k]
                 khewat_df = khewat_df[ordered_cols_k + remaining_cols_k]
 
-                st.write(f"### All Records for Khewat No {selected_khewat}", khewat_df)
+                st.write(f"### All Records for khewat no {selected_khewat}", khewat_df)
 
         # --- Download filtered data ---
         @st.cache_data
@@ -71,3 +71,4 @@ if uploaded_file is not None:
         st.error(f"Error reading file: {e}")
 else:
     st.info("Please upload an Excel (.xlsx, .xls) or CSV file to begin.")
+
