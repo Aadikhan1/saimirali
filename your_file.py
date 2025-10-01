@@ -41,16 +41,21 @@ if uploaded_file is not None:
 
         # --- Khewat no selection ---
         if "khewat no" in df.columns:
-            # Keep khewat no as string
+            # Keep as string
             df["khewat no"] = df["khewat no"].astype(str)
-            
-            # Natural sort function for khewats
-            import re
-            def natural_sort_key(k):
-                # split numbers and text for sorting, e.g., "46/2" -> [46, 2]
-                return [int(text) if text.isdigit() else text for text in re.split(r'(\d+)', k)]
-            
-            khewat_list = sorted(df["khewat no"].dropna().unique().tolist(), key=natural_sort_key)
+
+            # Custom sort: main numbers first, then sub-numbers
+            def khewat_sort_key(k):
+                parts = k.split("/")
+                try:
+                    main = int(parts[0])
+                except:
+                    main = float("inf")
+                sub = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+                return (main, sub)
+
+            khewat_list = sorted(df["khewat no"].dropna().unique().tolist(), key=khewat_sort_key)
+
             selected_khewat = st.selectbox("Select Khewat No to view all records", ["None"] + khewat_list)
 
             if selected_khewat != "None":
