@@ -19,10 +19,9 @@ if uploaded_file is not None:
         st.success("File uploaded successfully!")
         st.write("### Preview of Data", df.head())
 
-        # --- Text filters (First Name, Last Name, NIC) ---
+        # --- Text filters ---
         search_cols = ["First Name", "Last Name", "NIC"]
         filters = {}
-
         for col in search_cols:
             if col in df.columns:
                 filters[col] = st.text_input(f"Search in {col}")
@@ -39,22 +38,22 @@ if uploaded_file is not None:
 
         st.write("### Filtered Data", filtered_df)
 
-        # --- Khewat no selection ---
+        # --- Khewat selection ---
         if "khewat no" in df.columns:
-            # Keep as string
             df["khewat no"] = df["khewat no"].astype(str)
 
-            # Sort khewats: main numbers first, subnumbers after, everything separate
+            # Custom sort key: main number, then sub-number, then original string
             def khewat_sort_key(k):
-                # split on slash to separate main number and sub number
-                parts = k.split("/")
                 try:
+                    parts = k.split("/")
                     main = int(parts[0])
+                    sub = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
                 except:
                     main = float("inf")
-                sub = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
-                return (main, sub, k)  # include original k to prevent merging
+                    sub = 0
+                return (main, sub, k)  # original string ensures uniqueness
 
+            # Sort khewats while keeping every entry separate
             khewat_list = sorted(df["khewat no"].dropna().unique().tolist(), key=khewat_sort_key)
 
             selected_khewat = st.selectbox("Select Khewat No to view all records", ["None"] + khewat_list)
@@ -62,14 +61,13 @@ if uploaded_file is not None:
             if selected_khewat != "None":
                 khewat_df = df[df["khewat no"] == selected_khewat]
 
-                # Reorder for khewat result
+                # Reorder columns for khewat result
                 ordered_cols_k = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC", "khewat no"] if c in khewat_df.columns]
                 remaining_cols_k = [c for c in khewat_df.columns if c not in ordered_cols_k]
                 khewat_df = khewat_df[ordered_cols_k + remaining_cols_k]
 
                 st.write(f"### All Records for Khewat No {selected_khewat}", khewat_df)
 
-                # Download Khewat result
                 @st.cache_data
                 def convert_df(df):
                     return df.to_csv(index=False).encode("utf-8")
@@ -82,7 +80,7 @@ if uploaded_file is not None:
                     mime="text/csv",
                 )
 
-        # --- Download filtered data (from text search) ---
+        # --- Download filtered data ---
         @st.cache_data
         def convert_df_all(df):
             return df.to_csv(index=False).encode("utf-8")
