@@ -44,15 +44,16 @@ if uploaded_file is not None:
             # Keep as string
             df["khewat no"] = df["khewat no"].astype(str)
 
-            # Custom sort: main numbers first, then sub-numbers
+            # Sort khewats: main numbers first, subnumbers after, everything separate
             def khewat_sort_key(k):
+                # split on slash to separate main number and sub number
                 parts = k.split("/")
                 try:
                     main = int(parts[0])
                 except:
                     main = float("inf")
                 sub = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
-                return (main, sub)
+                return (main, sub, k)  # include original k to prevent merging
 
             khewat_list = sorted(df["khewat no"].dropna().unique().tolist(), key=khewat_sort_key)
 
