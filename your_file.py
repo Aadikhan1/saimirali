@@ -19,28 +19,42 @@ if uploaded_file is not None:
         st.success("File uploaded successfully!")
         st.write("### Preview of Data", df.head())
 
-        # Only allow search on specific columns
+        # --- Text filters (First Name, Last Name, NIC) ---
         search_cols = ["First Name", "Last Name", "NIC"]
         filters = {}
 
         for col in search_cols:
-            if col in df.columns:  # check column exists
+            if col in df.columns:
                 filters[col] = st.text_input(f"Search in {col}")
 
-        # Apply filters
         filtered_df = df.copy()
         for col, search_value in filters.items():
             if search_value:
                 filtered_df = filtered_df[filtered_df[col].astype(str).str.contains(search_value, case=False, na=False)]
 
-        # Reorder columns: SNo, Mauza, First Name, Relation, Last Name, NIC, then others
+        # --- Reorder columns ---
         ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in filtered_df.columns]
         remaining_cols = [c for c in filtered_df.columns if c not in ordered_cols]
         filtered_df = filtered_df[ordered_cols + remaining_cols]
 
         st.write("### Filtered Data", filtered_df)
 
-        # Download filtered data
+        # --- Khewat selection (AFTER filter results) ---
+        if "Khewat" in df.columns:
+            khewat_list = sorted(df["Khewat"].dropna().unique().astype(str).tolist())
+            selected_khewat = st.selectbox("Select Khewat to view all records", ["None"] + khewat_list)
+
+            if selected_khewat != "None":
+                khewat_df = df[df["Khewat"].astype(str) == selected_khewat]
+
+                # Reorder for khewat result
+                ordered_cols_k = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in khewat_df.columns]
+                remaining_cols_k = [c for c in khewat_df.columns if c not in ordered_cols_k]
+                khewat_df = khewat_df[ordered_cols_k + remaining_cols_k]
+
+                st.write(f"### All Records for Khewat {selected_khewat}", khewat_df)
+
+        # --- Download filtered data ---
         @st.cache_data
         def convert_df(df):
             return df.to_csv(index=False).encode("utf-8")
