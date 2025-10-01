@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-st.title("Excel/CSV Data Filter Tool")
+st.title("Sai Mirali Owners Data Tool")
 
 uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"])
 
@@ -10,7 +10,6 @@ if uploaded_file is not None:
         if uploaded_file.name.endswith(".csv"):
             df = pd.read_csv(uploaded_file)
         else:
-            # Try Excel, fallback if openpyxl is missing
             try:
                 df = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
             except ImportError:
@@ -20,11 +19,15 @@ if uploaded_file is not None:
         st.success("File uploaded successfully!")
         st.write("### Preview of Data", df.head())
 
-        # Search filters
+        # Only allow search on specific columns
+        search_cols = ["First Name", "Last Name", "NIC"]
         filters = {}
-        for col in df.columns:
-            filters[col] = st.text_input(f"Search in {col}")
 
+        for col in search_cols:
+            if col in df.columns:  # check column exists
+                filters[col] = st.text_input(f"Search in {col}")
+
+        # Apply filters
         filtered_df = df.copy()
         for col, search_value in filters.items():
             if search_value:
@@ -44,6 +47,7 @@ if uploaded_file is not None:
             file_name="filtered_data.csv",
             mime="text/csv",
         )
+
     except Exception as e:
         st.error(f"Error reading file: {e}")
 else:
