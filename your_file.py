@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-st.title("Sai Mirali Owners Data Tool & Khewat Selection")
+st.title("Excel/CSV Data Filter Tool")
 
 uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"])
 
