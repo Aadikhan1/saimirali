@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-st.title("Sai Mirali Owners Data Tool & Khewat Filter Data")
+st.title("Sai Mirali Owners Data Tool")
 
 uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"])
 
@@ -33,33 +33,51 @@ if uploaded_file is not None:
                 filtered_df = filtered_df[filtered_df[col].astype(str).str.contains(search_value, case=False, na=False)]
 
         # --- Reorder columns ---
-        ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in filtered_df.columns]
+        ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC", "khewat no"] if c in filtered_df.columns]
         remaining_cols = [c for c in filtered_df.columns if c not in ordered_cols]
         filtered_df = filtered_df[ordered_cols + remaining_cols]
 
         st.write("### Filtered Data", filtered_df)
 
-        # --- Khewat No selection (AFTER filter results) ---
+        # --- Khewat no selection ---
         if "khewat no" in df.columns:
-            khewat_list = sorted(df["khewat no"].dropna().unique().astype(str).tolist())
-            selected_khewat = st.selectbox("Select khewat no to view all records", ["None"] + khewat_list)
+            # sort as numbers, not strings
+            df["khewat no"] = pd.to_numeric(df["khewat no"], errors="coerce")
+            df = df.sort_values(by="khewat no")
+
+            khewat_list = sorted(df["khewat no"].dropna().unique().astype(int).tolist())
+            selected_khewat = st.selectbox("Select Khewat No to view all records", ["None"] + [str(k) for k in khewat_list])
 
             if selected_khewat != "None":
-                khewat_df = df[df["khewat no"].astype(str) == selected_khewat]
+                selected_khewat = int(selected_khewat)
+                khewat_df = df[df["khewat no"] == selected_khewat]
 
                 # Reorder for khewat result
-                ordered_cols_k = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in khewat_df.columns]
+                ordered_cols_k = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC", "khewat no"] if c in khewat_df.columns]
                 remaining_cols_k = [c for c in khewat_df.columns if c not in ordered_cols_k]
                 khewat_df = khewat_df[ordered_cols_k + remaining_cols_k]
 
-                st.write(f"### All Records for khewat no {selected_khewat}", khewat_df)
+                st.write(f"### All Records for Khewat No {selected_khewat}", khewat_df)
 
-        # --- Download filtered data ---
+                # Download Khewat result
+                @st.cache_data
+                def convert_df(df):
+                    return df.to_csv(index=False).encode("utf-8")
+
+                csv_khewat = convert_df(khewat_df)
+                st.download_button(
+                    label=f"Download all records for Khewat No {selected_khewat}",
+                    data=csv_khewat,
+                    file_name=f"khewat_{selected_khewat}.csv",
+                    mime="text/csv",
+                )
+
+        # --- Download filtered data (from text search) ---
         @st.cache_data
-        def convert_df(df):
+        def convert_df_all(df):
             return df.to_csv(index=False).encode("utf-8")
 
-        csv = convert_df(filtered_df)
+        csv = convert_df_all(filtered_df)
         st.download_button(
             label="Download filtered data as CSV",
             data=csv,
@@ -71,4 +89,3 @@ if uploaded_file is not None:
         st.error(f"Error reading file: {e}")
 else:
     st.info("Please upload an Excel (.xlsx, .xls) or CSV file to begin.")
-
