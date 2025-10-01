@@ -1,31 +1,31 @@
 import pandas as pd
 import streamlit as st
 
-st.title("Excel/CSV Data Filter Tool")
+st.title("Sai Mirali Owners Data Tool")
 
 uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"])
 
 if uploaded_file is not None:
     try:
+        # Load file
         if uploaded_file.name.endswith(".csv"):
             df = pd.read_csv(uploaded_file)
         else:
-            try:
-                df = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
-            except ImportError:
-                st.error("`openpyxl` is not installed. Please upload a CSV file instead.")
-                st.stop()
+            df = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
 
         st.success("File uploaded successfully!")
         st.write("### Preview of Data", df.head())
 
         # --- Khewat selection ---
         if "khewat" in df.columns:
-            khewat_option = st.selectbox("Select Khewat", options=["All"] + sorted(df["khewat"].dropna().unique().astype(str).tolist()))
+            khewat_option = st.selectbox(
+                "Select Khewat",
+                options=["All"] + sorted(df["khewat"].dropna().unique().astype(str).tolist())
+            )
         else:
             khewat_option = "All"
 
-        # --- Search filters (only specific columns) ---
+        # --- Text search filters for specific columns ---
         filters = {}
         for col in ["first name", "last name", "cnic no"]:
             if col in df.columns:
@@ -34,14 +34,20 @@ if uploaded_file is not None:
         # --- Apply filters ---
         filtered_df = df.copy()
 
-        # Apply khewat filter
+        # Filter by khewat
         if khewat_option != "All":
             filtered_df = filtered_df[filtered_df["khewat"].astype(str) == str(khewat_option)]
 
-        # Apply search filters
+        # Apply text search filters
         for col, search_value in filters.items():
             if search_value:
                 filtered_df = filtered_df[filtered_df[col].astype(str).str.contains(search_value, case=False, na=False)]
+
+        # --- Reorder columns (sr no, mouza, first name, relation, last name, cnic no, then others) ---
+        preferred_order = ["sr no", "mouza", "first name", "relation", "last name", "cnic no"]
+        ordered_cols = [col for col in preferred_order if col in filtered_df.columns]
+        other_cols = [col for col in filtered_df.columns if col not in ordered_cols]
+        filtered_df = filtered_df[ordered_cols + other_cols]
 
         # Show results
         st.write("### Filtered Data", filtered_df)
@@ -58,6 +64,7 @@ if uploaded_file is not None:
             file_name="filtered_data.csv",
             mime="text/csv",
         )
+
     except Exception as e:
         st.error(f"Error reading file: {e}")
 else:
