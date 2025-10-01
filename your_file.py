@@ -7,52 +7,40 @@ uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls"
 
 if uploaded_file is not None:
     try:
-        # Load file
         if uploaded_file.name.endswith(".csv"):
             df = pd.read_csv(uploaded_file)
         else:
-            df = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
+            try:
+                df = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
+            except ImportError:
+                st.error("`openpyxl` is not installed in this environment. Please upload a CSV file instead.")
+                st.stop()
 
         st.success("File uploaded successfully!")
         st.write("### Preview of Data", df.head())
 
-        # --- Khewat selection ---
-        if "khewat" in df.columns:
-            khewat_option = st.selectbox(
-                "Select Khewat",
-                options=["All"] + sorted(df["khewat"].dropna().unique().astype(str).tolist())
-            )
-        else:
-            khewat_option = "All"
-
-        # --- Text search filters for specific columns ---
+        # Only allow search on specific columns
+        search_cols = ["First Name", "Last Name", "NIC"]
         filters = {}
-        for col in ["first name", "last name", "cnic no"]:
-            if col in df.columns:
+
+        for col in search_cols:
+            if col in df.columns:  # check column exists
                 filters[col] = st.text_input(f"Search in {col}")
 
-        # --- Apply filters ---
+        # Apply filters
         filtered_df = df.copy()
-
-        # Filter by khewat
-        if khewat_option != "All":
-            filtered_df = filtered_df[filtered_df["khewat"].astype(str) == str(khewat_option)]
-
-        # Apply text search filters
         for col, search_value in filters.items():
             if search_value:
                 filtered_df = filtered_df[filtered_df[col].astype(str).str.contains(search_value, case=False, na=False)]
 
-        # --- Reorder columns (sr no, mouza, first name, relation, last name, cnic no, then others) ---
-        preferred_order = ["sr no", "mouza", "first name", "relation", "last name", "cnic no"]
-        ordered_cols = [col for col in preferred_order if col in filtered_df.columns]
-        other_cols = [col for col in filtered_df.columns if col not in ordered_cols]
-        filtered_df = filtered_df[ordered_cols + other_cols]
+        # Reorder columns: SNo, Mauza, First Name, Relation, Last Name, NIC, then others
+        ordered_cols = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in filtered_df.columns]
+        remaining_cols = [c for c in filtered_df.columns if c not in ordered_cols]
+        filtered_df = filtered_df[ordered_cols + remaining_cols]
 
-        # Show results
         st.write("### Filtered Data", filtered_df)
 
-        # --- Download filtered data ---
+        # Download filtered data
         @st.cache_data
         def convert_df(df):
             return df.to_csv(index=False).encode("utf-8")
