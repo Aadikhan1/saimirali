@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-st.title("Sai Mirali Owners Data Tool")
+st.title("Sai Mirali Owners Data Tool & Khewat Filter Data")
 
 uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"])
 
@@ -39,20 +39,20 @@ if uploaded_file is not None:
 
         st.write("### Filtered Data", filtered_df)
 
-        # --- Khewat selection (AFTER filter results) ---
-        if "Khewat" in df.columns:
-            khewat_list = sorted(df["Khewat"].dropna().unique().astype(str).tolist())
-            selected_khewat = st.selectbox("Select Khewat to view all records", ["None"] + khewat_list)
+        # --- Khewat No selection (AFTER filter results) ---
+        if "Khewat No" in df.columns:
+            khewat_list = sorted(df["Khewat No"].dropna().unique().astype(str).tolist())
+            selected_khewat = st.selectbox("Select Khewat No to view all records", ["None"] + khewat_list)
 
             if selected_khewat != "None":
-                khewat_df = df[df["Khewat"].astype(str) == selected_khewat]
+                khewat_df = df[df["Khewat No"].astype(str) == selected_khewat]
 
                 # Reorder for khewat result
                 ordered_cols_k = [c for c in ["SNo", "Mauza", "First Name", "Relation", "Last Name", "NIC"] if c in khewat_df.columns]
                 remaining_cols_k = [c for c in khewat_df.columns if c not in ordered_cols_k]
                 khewat_df = khewat_df[ordered_cols_k + remaining_cols_k]
 
-                st.write(f"### All Records for Khewat {selected_khewat}", khewat_df)
+                st.write(f"### All Records for Khewat No {selected_khewat}", khewat_df)
 
         # --- Download filtered data ---
         @st.cache_data
